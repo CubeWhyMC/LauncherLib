@@ -18,6 +18,7 @@ public class LunarDownloader {
      *
      * @param version Minecraft版本
      * @param branch  LunarClient的分支
+     * @param module addon
      * @return JSON
      */
     public static JsonElement getVersionJson(String version, String branch, String module) throws IOException {
@@ -81,7 +82,6 @@ public class LunarDownloader {
 
     /**
      * 获取支持的版本
-     *
      * @return Support versions list
      */
     public static List<String> getSupportVersions() throws IOException {
@@ -103,6 +103,11 @@ public class LunarDownloader {
         return versions;
     }
 
+    /**
+     * 获取子版本数据
+     * @param version 子版本
+     * @return version json
+     * */
     public static JsonObject getSubVersion(String version) throws IOException {
         JsonObject metadata = Objects.requireNonNull(getMetadata()).getAsJsonObject();
         for (JsonElement version1 : metadata.get("versions").getAsJsonArray()) {
@@ -117,6 +122,11 @@ public class LunarDownloader {
         return null;
     }
 
+    /**
+     * 获取支持的模块
+     * @param version Minecraft 版本
+     * @return Module List
+     * */
     public static List<String> getSupportModules(String version) throws IOException {
         List<String> modules = new ArrayList<>();
 //        boolean isSubVersion = StringUtils.count(version, '.') >= 2;
@@ -127,5 +137,29 @@ public class LunarDownloader {
             modules.add(moduleJson.getAsJsonObject().get("id").getAsString());
         }
         return modules;
+    }
+
+    /**
+     * 获取Lunar的工件
+     * @param version Minecraft版本
+     * @param branch 分支
+     * @param module addon
+     * */
+
+    public static JsonObject getLunarArtifacts(String version, String branch, String module) throws IOException {
+        JsonObject out = new JsonObject();
+
+        JsonObject versionJson = Objects.requireNonNull(getVersionJson(version, branch, module)).getAsJsonObject();
+        JsonObject launchTypeData = versionJson.getAsJsonObject("launchTypeData");
+        JsonArray artifacts = launchTypeData.getAsJsonArray("artifacts");
+
+        for (JsonElement artifact :
+                artifacts) {
+            String key = artifact.getAsJsonObject().get("name").getAsString();
+            JsonElement value = artifact.getAsJsonObject().get("url");
+            out.add(key, value);
+        }
+
+        return out;
     }
 }
