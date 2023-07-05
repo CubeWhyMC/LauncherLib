@@ -6,7 +6,15 @@
 
 ## 如何使用
 
-LunarDownloader类提供了关于下载Lunar的API
+在build.gradle中添加如下代码
 
-LunarDir类提供了Lunar目录的API
+```groovy
+repositories {
+    maven { url 'https://www.jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.CubeWhy:LauncherLib:master-SNAPSHOT'
+}
+```
 
