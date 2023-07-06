@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.CubeWhy:LauncherLib:master-SNAPSHOT'
+    implementation 'com.github.cubewhy:LauncherLib:master-SNAPSHOT'
 }
 ```
 

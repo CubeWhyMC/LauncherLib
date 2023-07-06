@@ -36,5 +36,14 @@ public class HttpUtils {
     public static Call request(Request request) throws IOException {
         return httpClient.newCall(request);
     }
+
+    public static byte[] download(String url) throws IOException {
+        try (Response response = get(url).execute()) {
+            if (response.body() != null) {
+                return response.body().bytes();
+            }
+        }
+        return null;
+    }
 }
 
