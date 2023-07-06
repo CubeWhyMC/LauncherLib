@@ -33,7 +33,7 @@ public class LunarClient {
                 .getAsJsonObject("jre")
                 .getAsJsonArray("extraArguments")) {
             if (arg.getAsString().equals("-Djna.boot.library.path=natives")) {
-                out.add(baseDir + "/" + "natives");
+                out.add("-Djna.boot.library.path=" + baseDir + "/" + "natives");
                 continue;
             }
             out.add(arg.getAsString());
