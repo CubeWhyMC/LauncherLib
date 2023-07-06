@@ -1,14 +1,15 @@
 package org.cubewhy.launcher;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.cubewhy.launcher.game.MinecraftArgs;
 import org.cubewhy.launcher.utils.ZipUtils;
 import org.cubewhy.lunarcn.JavaAgent;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class LunarClient {
     /**
@@ -69,8 +70,9 @@ public class LunarClient {
      * @param programArgs   程序参数
      * @param minecraftArgs Minecraft args
      * @param agents        要添加的Java助理
+     * @param setupNatives  是否解压Natives
      */
-    public static String getArgs(String version, String module, String branch, String baseDir, MinecraftArgs minecraftArgs, String java, String[] jvmArgs, String[] programArgs, JavaAgent[] agents) throws IOException {
+    public static String getArgs(String version, String module, String branch, String baseDir, MinecraftArgs minecraftArgs, String java, String[] jvmArgs, String[] programArgs, JavaAgent[] agents, boolean setupNatives) throws IOException {
         ArrayList<String> args = new ArrayList<>();
         args.add(java); // Java可执行文件
         ArrayList<String> jvmArgsList = new ArrayList<>(Arrays.asList(jvmArgs));
@@ -110,6 +112,12 @@ public class LunarClient {
         }
         args.add(classpath.toString()); // classPath
         args.add(getMainClass(version)); // 主类
+
+        if (setupNatives) {
+            // 解压Natives
+            unzipNatives(new File(baseDir, nativesZip), baseDir);
+        }
+
         // Minecraft参数
         boolean ichorEnabled = getIChorState(version, branch, module);
 
@@ -151,9 +159,29 @@ public class LunarClient {
 
     /**
      * 解压Natives
+     *
      * @param nativesZip zip文件
-     * */
+     */
     public static void unzipNatives(File nativesZip, String baseDir) throws IOException {
         ZipUtils.unZip(nativesZip, new File(baseDir, "natives"));
+    }
+
+    /**
+     * 获取启动指令并自动执行
+     *
+     * @param version       游戏版本
+     * @param module        启用的模块
+     * @param branch        分支
+     * @param baseDir       游戏工件所在的目录
+     * @param java          Java可执行文件
+     * @param jvmArgs       Java虚拟机参数
+     * @param programArgs   程序参数
+     * @param minecraftArgs Minecraft args
+     * @param agents        要添加的Java助理
+     * @return 游戏进程
+     */
+    public static Process launch(String version, String module, String branch, String baseDir, MinecraftArgs minecraftArgs, String java, String[] jvmArgs, String[] programArgs, JavaAgent[] agents) throws IOException {
+        String args = getArgs(version, module, branch, baseDir, minecraftArgs, java, jvmArgs, programArgs, agents, true);
+        return Runtime.getRuntime().exec(args);
     }
 }
