@@ -4,10 +4,11 @@ import com.google.gson.*;
 import okhttp3.Response;
 import org.cubewhy.launcher.utils.HttpUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class LunarDownloader {
     public static final String api = "https://api.lunarclientprod.com/launcher/launch";
@@ -18,7 +19,7 @@ public class LunarDownloader {
      *
      * @param version Minecraft版本
      * @param branch  LunarClient的分支
-     * @param module addon
+     * @param module  addon
      * @return JSON
      */
     public static JsonElement getVersionJson(String version, String branch, String module) throws IOException {
@@ -82,6 +83,7 @@ public class LunarDownloader {
 
     /**
      * 获取支持的版本
+     *
      * @return Support versions list
      */
     public static List<String> getSupportVersions() throws IOException {
@@ -105,9 +107,10 @@ public class LunarDownloader {
 
     /**
      * 获取子版本数据
+     *
      * @param version 子版本
      * @return version json
-     * */
+     */
     public static JsonObject getSubVersion(String version) throws IOException {
         JsonObject metadata = Objects.requireNonNull(getMetadata()).getAsJsonObject();
         for (JsonElement version1 : metadata.get("versions").getAsJsonArray()) {
@@ -124,9 +127,10 @@ public class LunarDownloader {
 
     /**
      * 获取支持的模块
+     *
      * @param version Minecraft 版本
      * @return Module List
-     * */
+     */
     public static List<String> getSupportModules(String version) throws IOException {
         List<String> modules = new ArrayList<>();
 //        boolean isSubVersion = StringUtils.count(version, '.') >= 2;
@@ -141,10 +145,11 @@ public class LunarDownloader {
 
     /**
      * 获取Lunar的工件
+     *
      * @param version Minecraft版本
-     * @param branch 分支
-     * @param module addon
-     * */
+     * @param branch  分支
+     * @param module  addon
+     */
 
     public static JsonObject getLunarArtifacts(String version, String branch, String module) throws IOException {
         JsonObject out = new JsonObject();
@@ -161,5 +166,39 @@ public class LunarDownloader {
         }
 
         return out;
+    }
+
+    /**
+     * 自动下载Lunar的工件
+     * @param downloadPath 下载路径
+     * @param artifacts 对应版本的工件列表
+     */
+    public static void downloadLunarArtifacts(File downloadPath, JsonObject artifacts) {
+        if (!downloadPath.exists()) {
+            downloadPath.mkdirs();
+        }
+        for (Map.Entry<String, JsonElement> keySet : artifacts.entrySet()) {
+            String fileName = keySet.getKey();
+            String url = keySet.getValue().getAsString();
+            try {
+                byte[] fileBytes = HttpUtils.download(url);
+                try (FileOutputStream stream = new FileOutputStream(downloadPath + "/" + fileName)) {
+                    if (fileBytes != null) {
+                        stream.write(fileBytes);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 下载Lunar工件
+     * @param downloadPath 下载路径
+     * @param artifacts 对应版本的工件列表
+     * */
+    public static void downloadLunarArtifacts(String downloadPath, JsonObject artifacts) {
+        downloadLunarArtifacts(new File(downloadPath), artifacts);
     }
 }
