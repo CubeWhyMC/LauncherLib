@@ -132,6 +132,9 @@ public class LunarClient {
         args.add("--width " + minecraftArgs.width);
         args.add("--height " + minecraftArgs.height);
         args.add("--gameDir " + minecraftArgs.gameDir);
+        if (minecraftArgs.server != null) {
+            args.add("--server " + minecraftArgs.server); // Join server after launch
+        }
         args.add("--assetIndex " + version.substring(0, version.lastIndexOf("."))); // 资源Index
         if (ichorEnabled) {
             args.add(lunarClasspath.toString());
