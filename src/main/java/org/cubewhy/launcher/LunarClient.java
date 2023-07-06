@@ -3,8 +3,10 @@ package org.cubewhy.launcher;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.cubewhy.launcher.game.MinecraftArgs;
+import org.cubewhy.launcher.utils.ZipUtils;
 import org.cubewhy.lunarcn.JavaAgent;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -23,12 +25,16 @@ public class LunarClient {
      *
      * @return jvm args
      */
-    public static ArrayList<String> getDefaultJvmArgs(String version, String module, String branch) throws IOException {
+    public static ArrayList<String> getDefaultJvmArgs(String version, String module, String branch, String baseDir) throws IOException {
         ArrayList<String> out = new ArrayList<>();
         for (JsonElement arg : Objects.requireNonNull(LunarDownloader.getVersionJson(version, branch, module))
                 .getAsJsonObject()
                 .getAsJsonObject("jre")
                 .getAsJsonArray("extraArguments")) {
+            if (arg.getAsString().equals("-Djna.boot.library.path=natives")) {
+                out.add(baseDir + "/" + "natives");
+                continue;
+            }
             out.add(arg.getAsString());
         }
         return out;
@@ -54,20 +60,21 @@ public class LunarClient {
     /**
      * 拼接参数
      *
-     * @param version     游戏版本
-     * @param module      启用的模块
-     * @param branch      分支
-     * @param baseDir     游戏工件所在的目录
-     * @param java        Java可执行文件
-     * @param jvmArgs     Java虚拟机参数
-     * @param programArgs 程序参数
-     * @param agents      要添加的Java助理
+     * @param version       游戏版本
+     * @param module        启用的模块
+     * @param branch        分支
+     * @param baseDir       游戏工件所在的目录
+     * @param java          Java可执行文件
+     * @param jvmArgs       Java虚拟机参数
+     * @param programArgs   程序参数
+     * @param minecraftArgs Minecraft args
+     * @param agents        要添加的Java助理
      */
     public static String getArgs(String version, String module, String branch, String baseDir, MinecraftArgs minecraftArgs, String java, String[] jvmArgs, String[] programArgs, JavaAgent[] agents) throws IOException {
         ArrayList<String> args = new ArrayList<>();
         args.add(java); // Java可执行文件
         ArrayList<String> jvmArgsList = new ArrayList<>(Arrays.asList(jvmArgs));
-        jvmArgsList.addAll(getDefaultJvmArgs(version, module, branch));
+        jvmArgsList.addAll(getDefaultJvmArgs(version, module, branch, baseDir));
         args.add(String.join(" ", jvmArgsList)); // JVM参数
 
         // JavaAgents
@@ -76,10 +83,10 @@ public class LunarClient {
             args.add(agent.getJvmArgs()); // pre JavaAgent JVM args
         }
         // ClassPaths
-        JsonObject artifacts = LunarDownloader.getLunarArtifacts(version, branch, module);
         StringBuilder classpath = new StringBuilder("-cp ");
         StringBuilder ichorPath = new StringBuilder("--ichorExternalFiles ");
         StringBuilder lunarClasspath = new StringBuilder("--ichorClassPath ");
+        String nativesZip = "natives.zip"; // Not default value, just for init
         for (JsonElement artifact :
                 Objects.requireNonNull(LunarDownloader.getVersionJson(version, branch, module))
                         .getAsJsonObject()
@@ -96,6 +103,9 @@ public class LunarClient {
                 // is external file
                 ichorPath.append(artifact.getAsJsonObject().get("name").getAsString())
                         .append(",");
+            } else if (artifact.getAsJsonObject().get("type").getAsString().equals("NATIVES")) {
+                // natives
+                nativesZip = artifact.getAsJsonObject().get("name").getAsString();
             }
         }
         args.add(classpath.toString()); // classPath
@@ -119,6 +129,9 @@ public class LunarClient {
             args.add(lunarClasspath.toString());
             args.add(ichorPath.toString());
         }
+        if (programArgs.length > 0) {
+            args.add(String.join("", programArgs));
+        }
         return String.join(" ", args);
     }
 
@@ -136,9 +149,11 @@ public class LunarClient {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        MinecraftArgs minecraftArgs = new MinecraftArgs("%APPDATA%/.minecraft", "C:\\Users\\nkwjg\\.lunarclient\\textures", 600, 600);
-        String game = getArgs("1.8.9", "lunar", "master", LunarDir.lunarDir + "/cn", minecraftArgs, "java.exe", new String[]{}, new String[]{}, new JavaAgent[]{});
-        System.out.println(game);
+    /**
+     * 解压Natives
+     * @param nativesZip zip文件
+     * */
+    public static void unzipNatives(File nativesZip, String baseDir) throws IOException {
+        ZipUtils.unZip(nativesZip, new File(baseDir, "natives"));
     }
 }
