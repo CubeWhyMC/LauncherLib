@@ -197,8 +197,4 @@ public class MinecraftDownloader {
     public static void downloadLibrariesOnline(String version, String libraryDir) throws IOException {
         downloadLibrariesOnline(version, new File(libraryDir));
     }
-
-    public static void main(String[] args) throws IOException {
-        downloadLibrariesOnline("1.8.9", "D:/libraries");
-    }
 }
