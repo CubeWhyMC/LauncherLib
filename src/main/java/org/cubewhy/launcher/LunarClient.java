@@ -38,6 +38,7 @@ public class LunarClient {
             }
             out.add(arg.getAsString());
         }
+        out.add("-Djava.library.path=" + baseDir + "/" + "natives");
         return out;
     }
 
@@ -166,7 +167,11 @@ public class LunarClient {
      * @param nativesZip zip文件
      */
     public static void unzipNatives(File nativesZip, String baseDir) throws IOException {
-        ZipUtils.unZip(nativesZip, new File(baseDir, "natives"));
+        File dir = new File(baseDir, "natives");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        ZipUtils.unZip(nativesZip, dir);
     }
 
     /**
