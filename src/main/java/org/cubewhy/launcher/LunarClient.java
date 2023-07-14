@@ -133,6 +133,7 @@ public class LunarClient {
         args.add("--width " + minecraftArgs.width);
         args.add("--height " + minecraftArgs.height);
         args.add("--gameDir " + minecraftArgs.gameDir);
+        args.add("--texturesDir " + minecraftArgs.texturesDir);
         if (minecraftArgs.server != null) {
             args.add("--server " + minecraftArgs.server); // Join server after launch
         }
