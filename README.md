@@ -1,20 +1,16 @@
 # Launcher Lib
 
-## 为什么创建这个项目
+## Why create this project
 
-因为LunarClient使用JS写的启动器磁盘空间占用过多, 而且不支持自定义, 所以此项目就诞生了
+LunarClient's launcher wrote in JavaScript & electron, it takes 100+MB size, it's so big, so I create this project,
 
-## 如何使用
+LunarClient Launcher API with Java programming language
 
-在build.gradle中添加如下代码
+## Using
 
-```groovy
-repositories {
-    maven { url 'https://www.jitpack.io' }
-}
+> I will upload artifacts to a maven repo
 
-dependencies {
-    implementation 'com.github.cubewhy:LauncherLib:master-SNAPSHOT'
-}
-```
-
+1. Clone this project
+2. Build it by your self
+3. Find artifact at build/libs
+4. Add the artifact to your project (as dependency)
