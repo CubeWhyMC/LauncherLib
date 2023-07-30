@@ -10,7 +10,7 @@ LunarClient Launcher API with Java programming language
 
 ```groovy
 repositories {
-    maven { url = "https://repo.lunarcn.top/repository/" }
+    maven { url = "https://repo.lunarcn.top/repository/maven-snapshots/" }
     mavenCentral()
 }
 
