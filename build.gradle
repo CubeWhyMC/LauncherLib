@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'org.cubewhy.launcher'
+group = 'org.cubewhy'
 version = '1.0-SNAPSHOT'
 
 repositories {
@@ -16,14 +16,21 @@ dependencies {
 }
 
 publishing {
+    publications {
+        LauncherLib(MavenPublication) {
+            from components.java
+        }
+    }
+
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/cubewhy/LauncherLib"
+            name = "LunarCN"
+            url = "https://repo.lunarcn.top/repository/maven-snapshots/"
             credentials {
-                username = System.getenv("USERNAME")
-                password = System.getenv("TOKEN")
+                username System.getenv("LUNARCN_USERNAME")
+                password System.getenv("LUNARCN_PASSWORD")
             }
         }
     }
 }
+

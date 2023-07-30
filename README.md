@@ -8,9 +8,13 @@ LunarClient Launcher API with Java programming language
 
 ## Using
 
-> I will upload artifacts to a maven repo
+```groovy
+repositories {
+    maven { url = "https://repo.lunarcn.top/repository/" }
+    mavenCentral()
+}
 
-1. Clone this project
-2. Build it by your self
-3. Find artifact at build/libs
-4. Add the artifact to your project (as dependency)
+dependencies {
+    implementation("org.cubewhy:LunarLauncherLib:1.0-20230730.095323-1")
+}
+```
