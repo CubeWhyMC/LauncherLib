@@ -15,6 +15,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.cubewhy:LunarLauncherLib:1.0-20230730.095323-1")
+    implementation 'org.cubewhy:LunarLauncherLib:1.1-20230803.012823-1'
 }
 ```
