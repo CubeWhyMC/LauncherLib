@@ -3,12 +3,16 @@ package org.cubewhy.launcher;
 import com.google.gson.*;
 import okhttp3.Response;
 import org.cubewhy.launcher.utils.HttpUtils;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class LunarDownloader {
     public static final String api = "https://api.lunarclientprod.com/launcher/launch";
@@ -17,8 +21,8 @@ public class LunarDownloader {
     /**
      * 请求LunarClient的API并获取Lunar文件的下载地址
      *
-     * @param version Minecraft版本
-     * @param branch  LunarClient的分支
+     * @param version Minecraft version
+     * @param branch  Branch of LunarClient
      * @param module  addon
      * @return JSON
      */
@@ -47,9 +51,9 @@ public class LunarDownloader {
     /**
      * 请求LunarClient的API并获取Lunar文件的下载地址
      *
-     * @param version Minecraft版本
-     * @param module  要启用的模块
-     * @return JSON
+     * @param version Minecraft version
+     * @param module  addons
+     * @return JSON of version
      */
     public static JsonElement getVersionJson(String version, String module) throws IOException {
         return getVersionJson(version, "master", module);
@@ -66,7 +70,7 @@ public class LunarDownloader {
     }
 
     /**
-     * 获取Lunar metadata
+     * Get LunarLauncher metadata
      *
      * @return Metadata Json
      */
@@ -82,7 +86,7 @@ public class LunarDownloader {
 
 
     /**
-     * 获取支持的版本
+     * Get support versions
      *
      * @return Support versions list
      */
@@ -106,7 +110,7 @@ public class LunarDownloader {
     }
 
     /**
-     * 获取子版本数据
+     * Get information of subversion
      *
      * @param version 子版本
      * @return version json
@@ -126,9 +130,9 @@ public class LunarDownloader {
     }
 
     /**
-     * 获取支持的模块
+     * Get support addons
      *
-     * @param version Minecraft 版本
+     * @param version Minecraft version
      * @return Module List
      */
     public static List<String> getSupportModules(String version) throws IOException {
@@ -144,10 +148,10 @@ public class LunarDownloader {
     }
 
     /**
-     * 获取Lunar的工件
+     * Get a list of LunarClient Artifacts
      *
-     * @param version Minecraft版本
-     * @param branch  分支
+     * @param version Minecraft version
+     * @param branch  Branch of LunarClient
      * @param module  addon
      */
 
@@ -170,8 +174,9 @@ public class LunarDownloader {
 
     /**
      * 自动下载Lunar的工件
+     *
      * @param downloadPath 下载路径
-     * @param artifacts 对应版本的工件列表
+     * @param artifacts    对应版本的工件列表
      */
     public static void downloadLunarArtifacts(File downloadPath, JsonObject artifacts) {
         if (!downloadPath.exists()) {
@@ -194,11 +199,73 @@ public class LunarDownloader {
     }
 
     /**
-     * 下载Lunar工件
-     * @param downloadPath 下载路径
-     * @param artifacts 对应版本的工件列表
-     * */
+     * Download artifacts of LunarClient
+     *
+     * @param downloadPath Download path
+     * @param artifacts    artifact list
+     */
     public static void downloadLunarArtifacts(String downloadPath, JsonObject artifacts) {
         downloadLunarArtifacts(new File(downloadPath), artifacts);
+    }
+
+    /**
+     * Get the textures' index of LunarClient
+     *
+     * @param version version of Minecraft
+     * @param branch  branch of LunarClient
+     * @param addon   LunarClient Addon
+     * @return textures' index
+     */
+    public static JsonElement getLunarTexturesIndex(String version, String branch, String addon) throws IOException {
+        JsonObject versionJson = Objects.requireNonNull(getVersionJson(version, branch, addon)).getAsJsonObject();
+        String indexUrl = versionJson.getAsJsonObject("textures").get("indexUrl").getAsString();
+        // get index json
+        String baseUrl = getLunarTexturesBaseUrl(version, branch, addon);
+        try (Response response = HttpUtils.get(indexUrl).execute()) {
+            if (response.body() != null) {
+                // parse
+                JsonObject jsonObject = new JsonObject();
+                for (String s : response.body().string().split("\n")) {
+                    // filename hashcode
+                    jsonObject.addProperty(baseUrl + s.split(" ")[0], s.split(" ")[1]);
+                }
+                return jsonObject;
+            }
+        }
+        return null;
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    public static String getLunarTexturesBaseUrl() {
+        return "https://textures.lunarclientcdn.com/file/";
+    }
+
+    public static String getLunarTexturesBaseUrl(String version, String branch, String module) throws IOException {
+        JsonObject versionJson = Objects.requireNonNull(getVersionJson(version, branch, module)).getAsJsonObject();
+        return versionJson.get("baseUrl").getAsString();
+    }
+
+    /**
+     * Download Textures of LunarClient
+     *
+     * @param downloadPath Where save files
+     * @param index        Textures index
+     */
+    public static void downloadLunarTextures(File downloadPath, JsonElement index) {
+        for (Map.Entry<String, JsonElement> keySet : index.getAsJsonObject().entrySet()) {
+            String fileName = keySet.getKey();
+            String url = keySet.getValue().getAsString();
+            try {
+                byte[] fileBytes = HttpUtils.download(url);
+                try (FileOutputStream stream = new FileOutputStream(downloadPath + "/" + fileName)) {
+                    if (fileBytes != null) {
+                        stream.write(fileBytes);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
