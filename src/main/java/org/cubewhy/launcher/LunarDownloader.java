@@ -254,8 +254,9 @@ public class LunarDownloader {
      */
     public static void downloadLunarTextures(File downloadPath, JsonElement index) {
         for (Map.Entry<String, JsonElement> keySet : index.getAsJsonObject().entrySet()) {
-            String fileName = keySet.getKey();
-            String url = keySet.getValue().getAsString();
+            String[] urlFull = keySet.getKey().split("/");
+            String fileName = urlFull[urlFull.length - 1];
+            String url = keySet.getKey();
             try {
                 byte[] fileBytes = HttpUtils.download(url);
                 try (FileOutputStream stream = new FileOutputStream(downloadPath + "/" + fileName)) {

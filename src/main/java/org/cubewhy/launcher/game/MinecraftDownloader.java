@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class MinecraftDownloader {
@@ -39,6 +38,7 @@ public class MinecraftDownloader {
      * @param version Minecraft 版本
      * @return version json
      */
+    @Nullable
     public static JsonObject getVersionJson(String version) throws IOException {
         String jsonUrl = null;
 
@@ -65,10 +65,11 @@ public class MinecraftDownloader {
     /**
      * 获取已发布的版本
      *
-     * @param release 结果是否包含正式版
+     * @param release  结果是否包含正式版
      * @param snapshot 结果是否包含测试版
      * @param oldAlpha 结果是否包含远古版本
      */
+    @NotNull
     public static ArrayList<String> getVersions(boolean release, boolean snapshot, boolean oldAlpha) throws IOException {
         JsonObject metadata = getLauncherMeta();
         JsonArray versions = Objects.requireNonNull(metadata).getAsJsonArray("versions");
@@ -100,15 +101,15 @@ public class MinecraftDownloader {
     }
 
     /**
-     * 获取所有Minecraft版本
-     * */
+     * Get all Minecraft versions
+     */
     @NotNull
     public static ArrayList<String> getVersions() throws IOException {
         return getVersions(true, true, true);
     }
 
     /**
-     * 获取Asset Index
+     * Get Asset Index of the version
      *
      * @param version Minecraft version
      */
@@ -130,11 +131,12 @@ public class MinecraftDownloader {
     }
 
     /**
-     * 下载版本JSON
+     * Download version JSON
+     *
      * @param version Minecraft version
      * @param outFile 目标文件
-     * */
-    public static void downloadVersionJson(String version, File outFile) throws IOException {
+     */
+    public static void downloadVersionJson(String version, @NotNull File outFile) throws IOException {
         JsonObject versionJson = getVersionJson(version);
         Gson gson = new Gson();
         String json = gson.toJson(versionJson);
@@ -148,21 +150,21 @@ public class MinecraftDownloader {
     }
 
     /**
-     * 下载版本JSON
+     * Download version JSON
      *
      * @param version Minecraft version
-     * @param outFile 目标文件的path
-     * */
+     * @param outFile path
+     */
     public static void downloadVersionJson(String version, String outFile) throws IOException {
         downloadVersionJson(version, new File(outFile));
     }
 
     /**
-     * 通过在线的Json文件下载Minecraft依赖
+     * Download Minecraft depends
      *
-     * @param version Minecraft version
-     * @param libraryDir libraries目录
-     * */
+     * @param version    Minecraft version
+     * @param libraryDir library dir
+     */
     public static void downloadLibrariesOnline(String version, File libraryDir) throws IOException {
         JsonObject versionJson = getVersionJson(version);
         JsonArray libraries = Objects.requireNonNull(versionJson).getAsJsonArray("libraries");
@@ -189,11 +191,11 @@ public class MinecraftDownloader {
     }
 
     /**
-     * 通过在线的Json文件下载Minecraft依赖
+     * Download Minecraft depends
      *
-     * @param version Minecraft version
-     * @param libraryDir libraries目录
-     * */
+     * @param version    Minecraft version
+     * @param libraryDir library dir
+     */
     public static void downloadLibrariesOnline(String version, String libraryDir) throws IOException {
         downloadLibrariesOnline(version, new File(libraryDir));
     }
