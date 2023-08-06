@@ -2,6 +2,7 @@ package org.cubewhy.launcher;
 
 import com.google.gson.*;
 import okhttp3.Response;
+import org.cubewhy.launcher.utils.FileUtils;
 import org.cubewhy.launcher.utils.HttpUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -164,9 +165,15 @@ public class LunarDownloader {
 
         for (JsonElement artifact :
                 artifacts) {
+            JsonObject info = new JsonObject();
             String key = artifact.getAsJsonObject().get("name").getAsString();
-            JsonElement value = artifact.getAsJsonObject().get("url");
-            out.add(key, value);
+            JsonElement url = artifact.getAsJsonObject().get("url");
+            JsonElement sha1 = artifact.getAsJsonObject().get("sha1");
+            JsonElement type = artifact.getAsJsonObject().get("type");
+            info.add("url", url);
+            info.add("sha1", sha1);
+            info.add("type", type);
+            out.add(key, info);
         }
 
         return out;
@@ -175,16 +182,26 @@ public class LunarDownloader {
     /**
      * 自动下载Lunar的工件
      *
-     * @param downloadPath 下载路径
-     * @param artifacts    对应版本的工件列表
+     * @param downloadPath download path
+     * @param artifacts    artifacts list
+     * @param update       update LunarClient
      */
-    public static void downloadLunarArtifacts(File downloadPath, JsonObject artifacts) {
+    public static void downloadLunarArtifacts(File downloadPath, JsonObject artifacts, boolean update) {
         if (!downloadPath.exists()) {
             downloadPath.mkdirs();
         }
         for (Map.Entry<String, JsonElement> keySet : artifacts.entrySet()) {
             String fileName = keySet.getKey();
-            String url = keySet.getValue().getAsString();
+            JsonObject info = keySet.getValue().getAsJsonObject();
+            String url = info.get("url").getAsString();
+            File file = new File(downloadPath, fileName);
+            if (file.exists() && update) {
+                String remoteSh1 = info.get("sh1").getAsString();
+                String sh1 = FileUtils.sha1(file);
+                if (remoteSh1.equals(sh1)) {
+                    continue; // no need update
+                }
+            }
             try {
                 byte[] fileBytes = HttpUtils.download(url);
                 try (FileOutputStream stream = new FileOutputStream(downloadPath + "/" + fileName)) {
@@ -203,9 +220,10 @@ public class LunarDownloader {
      *
      * @param downloadPath Download path
      * @param artifacts    artifact list
+     * @param update       Update LunarClient
      */
-    public static void downloadLunarArtifacts(String downloadPath, JsonObject artifacts) {
-        downloadLunarArtifacts(new File(downloadPath), artifacts);
+    public static void downloadLunarArtifacts(String downloadPath, JsonObject artifacts, boolean update) {
+        downloadLunarArtifacts(new File(downloadPath), artifacts, update);
     }
 
     /**
@@ -253,10 +271,28 @@ public class LunarDownloader {
      * @param index        Textures index
      */
     public static void downloadLunarTextures(File downloadPath, JsonElement index) {
+        downloadLunarTextures(downloadPath, index, true);
+    }
+
+    /**
+     * Download Textures of LunarClient
+     *
+     * @param downloadPath Where save files
+     * @param index        Textures index
+     * @param update       update resources
+     */
+    public static void downloadLunarTextures(File downloadPath, JsonElement index, boolean update) {
         for (Map.Entry<String, JsonElement> keySet : index.getAsJsonObject().entrySet()) {
             String[] urlFull = keySet.getKey().split("/");
             String fileName = urlFull[urlFull.length - 1];
             String url = keySet.getKey();
+            File file = new File(downloadPath, fileName);
+            if (file.exists() && update) {
+                String sh1 = keySet.getValue().getAsString();
+                if (sh1.equals(FileUtils.sha1(file))) {
+                    continue;
+                }
+            }
             try {
                 byte[] fileBytes = HttpUtils.download(url);
                 try (FileOutputStream stream = new FileOutputStream(downloadPath + "/" + fileName)) {
@@ -268,5 +304,23 @@ public class LunarDownloader {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Get is installed
+     *
+     * @param version    Minecraft version
+     * @param branch     LunarClient branch
+     * @param module     addons
+     * @param installDir Lunar install dir
+     */
+    public static boolean hasInstalled(String version, String branch, String module, File installDir) throws IOException {
+        JsonObject artifacts = Objects.requireNonNull(getLunarArtifacts(version, branch, module)).getAsJsonObject();
+        for (Map.Entry<String, JsonElement> entry : artifacts.entrySet()) {
+            if (!(new File(installDir, entry.getKey()).isFile())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

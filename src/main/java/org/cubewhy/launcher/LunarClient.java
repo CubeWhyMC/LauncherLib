@@ -7,13 +7,13 @@ import org.cubewhy.lunarcn.JavaAgent;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
 
 public class LunarClient {
     /**
-     * 获取LunarClient主类
+     * Get main-class of LunarClient
      *
      * @return mainClass
      */
@@ -22,7 +22,7 @@ public class LunarClient {
     }
 
     /**
-     * 获取默认JVM参数
+     * Get default JVM args
      *
      * @return jvm args
      */
@@ -43,9 +43,9 @@ public class LunarClient {
     }
 
     /**
-     * 获取LunarClient主类
+     * Get LunarClient main-class (online)
      *
-     * @param version 游戏版本
+     * @param version Minecraft version
      * @return mainClass
      */
     public static String getMainClass(String version) {
@@ -62,16 +62,16 @@ public class LunarClient {
     /**
      * 拼接参数
      *
-     * @param version       游戏版本
-     * @param module        启用的模块
-     * @param branch        分支
-     * @param baseDir       游戏工件所在的目录
-     * @param java          Java可执行文件
-     * @param jvmArgs       Java虚拟机参数
-     * @param programArgs   程序参数
+     * @param version       Minecraft version
+     * @param module        addon
+     * @param branch        branch
+     * @param baseDir       Game artifacts dir
+     * @param java          Java executable
+     * @param jvmArgs       JVM args
+     * @param programArgs   Game args
      * @param minecraftArgs Minecraft args
-     * @param agents        要添加的Java助理
-     * @param setupNatives  是否解压Natives
+     * @param agents        JavaAgents
+     * @param setupNatives  Unzip Natives
      */
     public static String getArgs(String version, String module, String branch, String baseDir, MinecraftArgs minecraftArgs, String java, String[] jvmArgs, String[] programArgs, JavaAgent[] agents, boolean setupNatives) throws IOException {
         ArrayList<String> args = new ArrayList<>();
@@ -115,7 +115,7 @@ public class LunarClient {
         args.add(getMainClass(version)); // 主类
 
         if (setupNatives) {
-            // 解压Natives
+            // unzip Natives
             unzipNatives(new File(baseDir, nativesZip), baseDir);
         }
 
@@ -149,7 +149,7 @@ public class LunarClient {
     }
 
     /**
-     * 获取ICHOR状态
+     * Get ICHOR state
      */
     private static boolean getIChorState(String version, String branch, String module) throws IOException {
         try {
@@ -163,9 +163,9 @@ public class LunarClient {
     }
 
     /**
-     * 解压Natives
+     * Unzip natives
      *
-     * @param nativesZip zip文件
+     * @param nativesZip natives zip
      */
     public static void unzipNatives(File nativesZip, String baseDir) throws IOException {
         File dir = new File(baseDir, "natives");
@@ -176,18 +176,18 @@ public class LunarClient {
     }
 
     /**
-     * 获取启动指令并自动执行
+     * Launch the game
      *
-     * @param version       游戏版本
-     * @param module        启用的模块
-     * @param branch        分支
+     * @param version       Minecraft version
+     * @param module        LunarClient addon
+     * @param branch        LunarClient branch
      * @param baseDir       游戏工件所在的目录
-     * @param java          Java可执行文件
-     * @param jvmArgs       Java虚拟机参数
-     * @param programArgs   程序参数
+     * @param java          Java executable
+     * @param jvmArgs       JVM args
+     * @param programArgs   Game args
      * @param minecraftArgs Minecraft args
-     * @param agents        要添加的Java助理
-     * @return 游戏进程
+     * @param agents        JavaAgents
+     * @return Game process
      */
     public static Process launch(String version, String module, String branch, String baseDir, MinecraftArgs minecraftArgs, String java, String[] jvmArgs, String[] programArgs, JavaAgent[] agents) throws IOException {
         String args = getArgs(version, module, branch, baseDir, minecraftArgs, java, jvmArgs, programArgs, agents, true);
