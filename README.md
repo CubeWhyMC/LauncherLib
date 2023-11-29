@@ -8,6 +8,8 @@ LunarClient Launcher API with Java programming language
 
 ## Using
 
+> Server went down :(
+
 ```groovy
 repositories {
     maven { url = "https://repo.lunarcn.top/repository/maven-public/" }
